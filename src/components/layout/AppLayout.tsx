@@ -4,7 +4,7 @@ import React, { useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { useAuth } from '@/hooks/use-auth';
 import { SidebarProvider, Sidebar, SidebarContent, SidebarHeader, SidebarMenu, SidebarMenuItem, SidebarMenuButton, SidebarTrigger, SidebarInset } from '@/components/ui/sidebar';
-import { Users, UserSquare2, Stethoscope, Landmark, Activity, Calendar, Database, LogOut } from 'lucide-react';
+import { Users, UserSquare2, Stethoscope, Landmark, Activity, Calendar, Database, LogOut, Settings, Sun, Moon } from 'lucide-react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 
@@ -16,12 +16,29 @@ const menuItems = [
   { icon: Calendar, label: 'Citas', href: '/appointments' },
   { icon: Users, label: 'Usuarios', href: '/admin/users' },
   { icon: Database, label: 'Copia de Seguridad', href: '/backups' },
+  { icon: Settings, label: 'Configuración', href: '/settings' },
 ];
 
 export function AppLayout({ children }: { children: React.ReactNode }) {
   const { user, logout, isLoading } = useAuth();
   const pathname = usePathname();
   const router = useRouter();
+  const [isDark, setIsDark] = React.useState(false);
+
+  React.useEffect(() => {
+    const saved = localStorage.getItem('kd_theme');
+    const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+    const dark = saved ? saved === 'dark' : prefersDark;
+    setIsDark(dark);
+    document.documentElement.classList.toggle('dark', dark);
+  }, []);
+
+  const toggleTheme = () => {
+    const next = !isDark;
+    setIsDark(next);
+    document.documentElement.classList.toggle('dark', next);
+    localStorage.setItem('kd_theme', next ? 'dark' : 'light');
+  };
 
   useEffect(() => {
     if (!isLoading && !user) {
@@ -78,6 +95,13 @@ export function AppLayout({ children }: { children: React.ReactNode }) {
             <SidebarTrigger />
             <div className="flex-1" />
             <div className="flex items-center gap-3 px-2">
+              <button
+                onClick={toggleTheme}
+                className="p-2 rounded-md hover:bg-muted transition-colors"
+                title={isDark ? 'Cambiar a modo claro' : 'Cambiar a modo oscuro'}
+              >
+                {isDark ? <Sun className="w-5 h-5 text-yellow-400" /> : <Moon className="w-5 h-5 text-slate-500" />}
+              </button>
               <span className="text-sm font-medium">Dr. {user.fullName || user.username}</span>
               <div className="w-8 h-8 rounded-full bg-primary flex items-center justify-center text-primary-foreground text-xs font-bold">
                 {(user.fullName || user.username).charAt(0).toUpperCase()}
